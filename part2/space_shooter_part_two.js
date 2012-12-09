@@ -4,7 +4,7 @@
  ***************/
 
 /* NOTES TO REMEMBER
- * http://opengameart.org/content/spaceship-tutorial-0 (enemy space ship)
+ * 1. Drawing to the canvas is expensive. Try to reuse as much as the image as you can for each frame.
  */
  
 /* RESOURCES
@@ -12,19 +12,12 @@
  * 2. http://www.canvasdemos.com/2010/12/15/5-performance-tips-for-your-html5-games/
  * 3. http://www.html5rocks.com/en/tutorials/speed/quick/
  * 4. http://www.kontain.com/fi/entries/94636/ (quote on performace)
- * 5. http://dougmcinnes.com/html-5-asteroids/
  */
 
 	
 /**
  * Initialize the Game and start it.
  */
-var avgFramerate = 0;
-var frameCount = 0;
-var elapsedCounter = 0;
-var lastFrame = Date.now();
-var thisFrame;
-var elapsed;
 var game = new Game();
 
 function init() {
@@ -376,23 +369,10 @@ function Game() {
  * object.
  */
 function animate() {
-	thisFrame = Date.now();
-	elapsed = thisFrame - lastFrame;
-	lastFrame = thisFrame;
-	var span = document.getElementById('fps').innerHTML =avgFramerate;
-	
 	requestAnimFrame( animate );
 	game.background.draw();
 	game.ship.move();
 	game.ship.bulletPool.animate(); 
-	
-	frameCount++;
-	elapsedCounter += elapsed;
-	if (elapsedCounter > 1000) {
-		elapsedCounter -= 1000;
-		avgFramerate = frameCount;
-		frameCount = 0;
-	}
 }
 
 
