@@ -8,10 +8,12 @@
  */
  
 /* RESOURCES
- * 1. http://gameprogrammingpatterns.com/object-pool.html
- * 2. http://www.canvasdemos.com/2010/12/15/5-performance-tips-for-your-html5-games/
- * 3. http://www.html5rocks.com/en/tutorials/speed/quick/
+ * 1. http://gamedev.tutsplus.com/tutorials/implementation/object-pools-help-you-reduce-lag-in-resource-intensive-games/
+ * 2. http://gameprogrammingpatterns.com/object-pool.html
+ * 3. http://www.slideshare.net/ernesto.jimenez/5-tips-for-your-html5-games
  * 4. http://www.kontain.com/fi/entries/94636/ (quote on performace)
+ * 5. http://code.bytespider.eu/post/21438674255/dirty-rectangles
+ * 6. http://www.html5rocks.com/en/tutorials/canvas/performance/
  */
 
 	
@@ -33,10 +35,28 @@ function init() {
  */
 var imageRepository = new function() {
 	// Define images
-	this.empty = null;
 	this.background = new Image();
 	this.spaceship = new Image();
 	this.bullet = new Image();
+
+	// Ensure all images have loaded before starting the game
+	var numImages = 3;
+	var numLoaded = 0;
+	function imageLoaded() {
+		numLoaded++;
+		if (numLoaded === numImages) {
+			window.init();
+		}
+	}
+	this.background.onload = function() {
+		imageLoaded();
+	}
+	this.spaceship.onload = function() {
+		imageLoaded();
+	}
+	this.bullet.onload = function() {
+		imageLoaded();
+	}
 	
 	// Set images src
 	this.background.src = "imgs/bg.png";
@@ -117,7 +137,7 @@ function Bullet() {
 
 	/*
 	 * Uses a "drity rectangle" to erase the bullet and moves it.
-	 * Returns true if the bullet moved of the screen, indicating that
+	 * Returns true if the bullet moved off the screen, indicating that
 	 * the bullet is ready to be cleared by the pool, otherwise draws
 	 * the bullet.
 	 */
@@ -149,7 +169,7 @@ Bullet.prototype = new Drawable();
  * Custom Pool object. Holds Bullet objects to be managed to prevent
  * garbage collection. 
  * The pool works as follows:
- * - When the pool is initialized, it popoulates an array with 
+ * - When the pool is initialized, it populates an array with 
  *   Bullet objects.
  * - When the pool needs to create a new object for use, it looks at
  *   the last item in the array and checks to see if it is currently
@@ -240,8 +260,6 @@ function Ship() {
 
 	var fireRate = 15;
 	var counter = 0;
-	this.collidableWith = "enemyBullet";
-	this.type = "ship";
 	
 	this.draw = function() {
 		this.context.drawImage(imageRepository.spaceship, this.x, this.y);
@@ -250,7 +268,7 @@ function Ship() {
 		counter++;
 		// Determine if the action is move action
 		if (KEY_STATUS.left || KEY_STATUS.right ||
-				KEY_STATUS.down || KEY_STATUS.up) {
+			KEY_STATUS.down || KEY_STATUS.up) {
 			// The ship moved, so erase it's current image so it can
 			// be redrawn in it's new location
 			this.context.clearRect(this.x, this.y, this.width, this.height);
@@ -260,7 +278,7 @@ function Ship() {
 			// to have diagonal movement.
 			if (KEY_STATUS.left) {
 				this.x -= this.speed
-				if (this.x <= 0) // Kep player within the screen
+				if (this.x <= 0) // Keep player within the screen
 					this.x = 0;
 			} else if (KEY_STATUS.right) {
 				this.x += this.speed
@@ -345,9 +363,9 @@ function Game() {
 			// Set the ship to start near the bottom middle of the canvas
 			var shipStartX = this.shipCanvas.width/2 - imageRepository.spaceship.width;
 			var shipStartY = this.shipCanvas.height/4*3 + imageRepository.spaceship.height*2;
-			this.ship.init(shipStartX, shipStartY,										 
-										 imageRepository.spaceship.width,
+			this.ship.init(shipStartX, shipStartY, imageRepository.spaceship.width,
 			               imageRepository.spaceship.height);
+
 			return true;
 		} else {
 			return false;
@@ -387,7 +405,7 @@ KEY_CODES = {
 }
 
 // Creates the array to hold the KEY_CODES and sets all their values
-// to true. Checking true/flase is the quickest way to check status
+// to false. Checking true/flase is the quickest way to check status
 // of a key press and which one was pressed when determining
 // when to move and which direction.
 KEY_STATUS = {};
@@ -401,12 +419,12 @@ for (code in KEY_CODES) {
  * key it was.
  */
 document.onkeydown = function(e) {
-	// Firefox and opera use charCode instead of keyCode to
-	// return which key was pressed.
-	var keyCode = (e.keyCode) ? e.keyCode : e.charCode;
+  // Firefox and opera use charCode instead of keyCode to
+  // return which key was pressed.
+  var keyCode = (e.keyCode) ? e.keyCode : e.charCode;
   if (KEY_CODES[keyCode]) {
-		e.preventDefault();
-    KEY_STATUS[KEY_CODES[keyCode]] = true;
+	e.preventDefault();
+	KEY_STATUS[KEY_CODES[keyCode]] = true;
   }
 }
 /**
