@@ -14,12 +14,6 @@
 /**
  * Initialize the Game and start it.
  */
-var avgFramerate = 0;
-var frameCount = 0;
-var elapsedCounter = 0;
-var lastFrame = Date.now();
-var thisFrame;
-var elapsed;
 var game = new Game();
 
 function init() {
@@ -67,11 +61,11 @@ var imageRepository = new function() {
 	}
 	
 	// Set images src
-	this.background.src = "bg.png";
-	this.spaceship.src = "ship.png";
-	this.bullet.src = "bullet.png";
-	this.enemy.src = "enemy.png";
-	this.enemyBullet.src = "bullet_enemy.png";
+	this.background.src = "imgs/bg.png";
+	this.spaceship.src = "imgs/ship.png";
+	this.bullet.src = "imgs/bullet.png";
+	this.enemy.src = "imgs/enemy.png";
+	this.enemyBullet.src = "imgs/bullet_enemy.png";
 }
 
 
@@ -291,7 +285,7 @@ function Ship() {
 	this.speed = 3;
 	this.bulletPool = new Pool(30);
 	this.bulletPool.init("bullet");
-	var fireRate = 9;
+	var fireRate = 15;
 	var counter = 0;
 	
 	this.draw = function() {
@@ -518,25 +512,12 @@ function Game() {
  * object.
  */
 function animate() {
-	thisFrame = Date.now();
-	elapsed = thisFrame - lastFrame;
-	lastFrame = thisFrame;
-	var span = document.getElementById('fps').innerHTML =avgFramerate;
-	
 	requestAnimFrame( animate );
 	game.background.draw();
 	game.ship.move();
 	game.ship.bulletPool.animate();
 	game.enemyPool.animate();
 	game.enemyBulletPool.animate();
-	
-	frameCount++;
-	elapsedCounter += elapsed;
-	if (elapsedCounter > 1000) {
-		elapsedCounter -= 1000;
-		avgFramerate = frameCount;
-		frameCount = 0;
-	}
 }
 
 

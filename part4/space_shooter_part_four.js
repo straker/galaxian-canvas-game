@@ -62,11 +62,11 @@ var imageRepository = new function() {
 	}
 
 	// Set images src
-	this.background.src = "bg.png";
-	this.spaceship.src = "ship.png";
-	this.bullet.src = "bullet.png";
-	this.enemy.src = "enemy.png";
-	this.enemyBullet.src = "bullet_enemy.png";
+	this.background.src = "imgs/bg.png";
+	this.spaceship.src = "imgs/ship.png";
+	this.bullet.src = "imgs/bullet.png";
+	this.enemy.src = "imgs/enemy.png";
+	this.enemyBullet.src = "imgs/bullet_enemy.png";
 }
 
 
@@ -513,7 +513,7 @@ function Ship() {
 	this.speed = 3;
 	this.bulletPool = new Pool(30);
 	this.bulletPool.init("bullet");
-	var fireRate = 9;
+	var fireRate = 15;
 	var counter = 0;
 	this.collidableWith = "enemyBullet";
 	this.type = "ship";
@@ -785,11 +785,11 @@ function detectCollision() {
 		for (y = 0, length = obj.length; y < length; y++) {
 
 			// DETECT COLLISION ALGORITHM
-			if ( objects[x].collidableWith === obj[y].type &&
-				(objects[x].x                     < obj[y].x + obj[y].width  &&
-			     objects[x].x + objects[x].width  > obj[y].x                 &&
-			     objects[x].y                     < obj[y].y + obj[y].height &&
-				 objects[x].y + objects[x].height > obj[y].y) {
+			if (objects[x].collidableWith === obj[y].type &&
+				(objects[x].x < obj[y].x + obj[y].width &&
+			     objects[x].x + objects[x].width > obj[y].x &&
+				 objects[x].y < obj[y].y + obj[y].height &&
+				 objects[x].y + objects[y].height > obj[y].y)) {
 				objects[x].isColliding = true;
 				obj[y].isColliding = true;
 			}
