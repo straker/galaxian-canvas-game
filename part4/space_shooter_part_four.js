@@ -5,7 +5,7 @@
 /* NOTES TO REMEMBER
  * 1. Reducing the number of collision checks is a far better imporvement then just optimizing the collision detection algorithm.
  */
- 
+
 /* RESOURCES
  * 1. http://devmag.org.za/2009/04/13/basic-collision-detection-in-2d-part-1/
  * 2. http://gamedev.tutsplus.com/tutorials/implementation/quick-tip-use-quadtrees-to-detect-likely-collisions-in-2d-space/
@@ -25,7 +25,7 @@ function init() {
 
 /**
  * Define an object to hold all our images for the game so images
- * are only ever created once. This type of object is known as a 
+ * are only ever created once. This type of object is known as a
  * singleton.
  */
 var imageRepository = new function() {
@@ -35,7 +35,7 @@ var imageRepository = new function() {
 	this.bullet = new Image();
 	this.enemy = new Image();
 	this.enemyBullet = new Image();
-	
+
 	// Ensure all images have loaded before starting the game
 	var numImages = 5;
 	var numLoaded = 0;
@@ -74,7 +74,7 @@ var imageRepository = new function() {
  * Creates the Drawable object which will be the base class for
  * all drawable objects in the game. Sets up defualt variables
  * that all child objects will inherit, as well as the defualt
- * functions. 
+ * functions.
  */
 function Drawable() {
 	this.init = function(x, y, width, height) {
@@ -84,14 +84,14 @@ function Drawable() {
 		this.width = width;
 		this.height = height;
 	}
-	
+
 	this.speed = 0;
 	this.canvasWidth = 0;
 	this.canvasHeight = 0;
 	this.collidableWith = "";
 	this.isColliding = false;
 	this.type = "";
-	
+
 	// Define abstract function to be implemented in child objects
 	this.draw = function() {
 	};
@@ -110,14 +110,14 @@ function Drawable() {
  */
 function Background() {
 	this.speed = 1; // Redefine speed of the background for panning
-	
+
 	// Implement abstract function
 	this.draw = function() {
 		// Pan background
 		this.y += this.speed;
 		//this.context.clearRect(0,0, this.canvasWidth, this.canvasHeight);
 		this.context.drawImage(imageRepository.background, this.x, this.y);
-		
+
 		// Draw another image at the top edge of the first image
 		this.context.drawImage(imageRepository.background, this.x, this.y - this.canvasHeight);
 
@@ -134,7 +134,7 @@ Background.prototype = new Drawable();
  * Creates the Bullet object which the ship fires. The bullets are
  * drawn on the "main" canvas.
  */
-function Bullet(object) {	
+function Bullet(object) {
 	this.alive = false; // Is true if the bullet is currently in use
 	var self = object;
 	/*
@@ -156,7 +156,7 @@ function Bullet(object) {
 	this.draw = function() {
 		this.context.clearRect(this.x-1, this.y-1, this.width+2, this.height+2);
 		this.y -= this.speed;
-		
+
 		if (this.isColliding) {
 			return true;
 		}
@@ -173,11 +173,11 @@ function Bullet(object) {
 			else if (self === "enemyBullet") {
 				this.context.drawImage(imageRepository.enemyBullet, this.x, this.y);
 			}
-			
+
 			return false;
 		}
 	};
-	
+
 	/*
 	 * Resets the bullet values
 	 */
@@ -214,35 +214,35 @@ function QuadTree(boundBox, lvl) {
 	this.nodes = [];
 	var level = lvl || 0;
 	var maxLevels = 5;
-	
+
 	/*
 	 * Clears the quadTree and all nodes of objects
 	 */
 	this.clear = function() {
 		objects = [];
-		
+
 		for (var i = 0; i < this.nodes.length; i++) {
 			this.nodes[i].clear();
 		}
-		
+
 		this.nodes = [];
 	};
-	
+
 	/*
 	 * Get all objects in the quadTree
-	 */	
+	 */
 	this.getAllObjects = function(returnedObjects) {
 		for (var i = 0; i < this.nodes.length; i++) {
 			this.nodes[i].getAllObjects(returnedObjects);
 		}
-		
+
 		for (var i = 0, len = objects.length; i < len; i++) {
 			returnedObjects.push(objects[i]);
 		}
-		
+
 		return returnedObjects;
 	};
-	
+
 	/*
 	 * Return all objects that the object could collide with
 	 */
@@ -251,19 +251,19 @@ function QuadTree(boundBox, lvl) {
 			console.log("UNDEFINED OBJECT");
 			return;
 		}
-		
+
 		var index = this.getIndex(obj);
 		if (index != -1 && this.nodes.length) {
 			this.nodes[index].findObjects(returnedObjects, obj);
 		}
-		
+
 		for (var i = 0, len = objects.length; i < len; i++) {
 			returnedObjects.push(objects[i]);
 		}
-		
+
 		return returnedObjects;
 	};
-		
+
 	/*
 	 * Insert the object into the quadTree. If the tree
 	 * excedes the capacity, it will split and add all
@@ -273,37 +273,37 @@ function QuadTree(boundBox, lvl) {
 		if (typeof obj === "undefined") {
 			return;
 		}
-		
+
 		if (obj instanceof Array) {
 			for (var i = 0, len = obj.length; i < len; i++) {
 				this.insert(obj[i]);
 			}
-			
+
 			return;
 		}
-		
+
 		if (this.nodes.length) {
 			var index = this.getIndex(obj);
-			// Only add the object to a subnode if it can fit completely 
+			// Only add the object to a subnode if it can fit completely
 			// within one
 			if (index != -1) {
 				this.nodes[index].insert(obj);
-				
+
 				return;
 			}
 		}
-		
+
 		objects.push(obj);
-		
+
 		// Prevent infinite splitting
 		if (objects.length > maxObjects && level < maxLevels) {
 			if (this.nodes[0] == null) {
 				this.split();
 			}
-			
+
 			var i = 0;
 			while (i < objects.length) {
-				
+
 				var index = this.getIndex(objects[i]);
 				if (index != -1) {
 					this.nodes[index].insert((objects.splice(i,1))[0]);
@@ -314,25 +314,25 @@ function QuadTree(boundBox, lvl) {
 			}
 		}
 	};
-	
+
 	/*
 	 * Determine which node the object belongs to. -1 means
 	 * object cannot completely fit within a node and is part
 	 * of the current node
 	 */
 	this.getIndex = function(obj) {
-		
+
 		var index = -1;
 		var verticalMidpoint = this.bounds.x + this.bounds.width / 2;
 		var horizontalMidpoint = this.bounds.y + this.bounds.height / 2;
-		
+
 		// Object can fit completely within the top quadrant
 		var topQuadrant = (obj.y < horizontalMidpoint && obj.y + obj.height < horizontalMidpoint);
 		// Object can fit completely within the bottom quandrant
 		var bottomQuadrant = (obj.y > horizontalMidpoint);
-	
+
 		// Object can fit completely within the left quadrants
-		if (obj.x < verticalMidpoint && 
+		if (obj.x < verticalMidpoint &&
 				obj.x + obj.width < verticalMidpoint) {
 			if (topQuadrant) {
 				index = 1;
@@ -350,18 +350,18 @@ function QuadTree(boundBox, lvl) {
 				index = 3;
 			}
 		}
-		
+
 		return index;
 	};
-	
-	/* 
+
+	/*
 	 * Splits the node into 4 subnodes
 	 */
 	this.split = function() {
 		// Bitwise or [html5rocks]
 		var subWidth = (this.bounds.width / 2) | 0;
 		var subHeight = (this.bounds.height / 2) | 0;
-		
+
 		this.nodes[0] = new QuadTree({
 			x: this.bounds.x + subWidth,
 			y: this.bounds.y,
@@ -388,34 +388,34 @@ function QuadTree(boundBox, lvl) {
 		}, level+1);
 	};
 }
- 
+
 
 /**
  * Custom Pool object. Holds Bullet objects to be managed to prevent
- * garbage collection. 
+ * garbage collection.
  * The pool works as follows:
- * - When the pool is initialized, it popoulates an array with 
+ * - When the pool is initialized, it popoulates an array with
  *   Bullet objects.
  * - When the pool needs to create a new object for use, it looks at
  *   the last item in the array and checks to see if it is currently
- *   in use or not. If it is in use, the pool is full. If it is 
- *   not in use, the pool "spawns" the last item in the array and 
+ *   in use or not. If it is in use, the pool is full. If it is
+ *   not in use, the pool "spawns" the last item in the array and
  *   then pops it from the end and pushed it back onto the front of
- *   the array. This makes the pool have free objects on the back 
+ *   the array. This makes the pool have free objects on the back
  *   and used objects in the front.
- * - When the pool animates its objects, it checks to see if the 
- *   object is in use (no need to draw unused objects) and if it is, 
- *   draws it. If the draw() function returns true, the object is 
- *   ready to be cleaned so it "clears" the object and uses the 
- *   array function splice() to remove the item from the array and 
+ * - When the pool animates its objects, it checks to see if the
+ *   object is in use (no need to draw unused objects) and if it is,
+ *   draws it. If the draw() function returns true, the object is
+ *   ready to be cleaned so it "clears" the object and uses the
+ *   array function splice() to remove the item from the array and
  *   pushes it to the back.
- * Doing this makes creating/destroying objects in the pool 
+ * Doing this makes creating/destroying objects in the pool
  * constant.
  */
 function Pool(maxSize) {
 	var size = maxSize; // Max bullets allowed in the pool
 	var pool = [];
-	
+
 	this.getPool = function() {
 		var obj = [];
 		for (var i = 0; i < size; i++) {
@@ -425,7 +425,7 @@ function Pool(maxSize) {
 		}
 		return obj;
 	}
-	
+
 	/*
 	 * Populates the pool array with the given object
 	 */
@@ -460,7 +460,7 @@ function Pool(maxSize) {
 			}
 		}
 	};
-	
+
 	/*
 	 * Grabs the last item in the list and initializes it and
 	 * pushes it to the front of the array.
@@ -471,7 +471,7 @@ function Pool(maxSize) {
 			pool.unshift(pool.pop());
 		}
 	};
-	
+
 	/*
 	 * Used for the ship to be able to get two bullets at once. If
 	 * only the get() function is used twice, the ship is able to
@@ -483,7 +483,7 @@ function Pool(maxSize) {
 			this.get(x2, y2, speed2);
 		}
 	};
-	
+
 	/*
 	 * Draws any in use Bullets. If a bullet goes off the screen,
 	 * clears it and pushes it to the front of the array.
@@ -517,11 +517,11 @@ function Ship() {
 	var counter = 0;
 	this.collidableWith = "enemyBullet";
 	this.type = "ship";
-	
+
 	this.draw = function() {
 		this.context.drawImage(imageRepository.spaceship, this.x, this.y);
 	};
-	this.move = function() {	
+	this.move = function() {
 		counter++;
 		// Determine if the action is move action
 		if (KEY_STATUS.left || KEY_STATUS.right ||
@@ -529,7 +529,7 @@ function Ship() {
 			// The ship moved, so erase it's current image so it can
 			// be redrawn in it's new location
 			this.context.clearRect(this.x, this.y, this.width, this.height);
-			
+
 			// Update x and y according to the direction to move and
 			// redraw the ship. Change the else if's to if statements
 			// to have diagonal movement.
@@ -550,7 +550,7 @@ function Ship() {
 				if (this.y >= this.canvasHeight - this.height)
 					this.y = this.canvasHeight - this.height;
 			}
-			
+
 			// Finish by redrawing the ship
 			if (!this.isColliding) {
 				this.draw();
@@ -561,7 +561,7 @@ function Ship() {
 			counter = 0;
 		}
 	};
-	
+
 	/*
 	 * Fires two bullets
 	 */
@@ -574,7 +574,7 @@ Ship.prototype = new Drawable();
 
 
 /**
- * Create the Enemy ship object. 
+ * Create the Enemy ship object.
  */
 function Enemy() {
 	var percentFire = .01;
@@ -582,7 +582,7 @@ function Enemy() {
 	this.alive = false;
 	this.collidableWith = "bullet";
 	this.type = "enemy";
-	
+
 	/*
 	 * Sets the Enemy values
 	 */
@@ -617,30 +617,30 @@ function Enemy() {
 			this.y -= 5;
 			this.speedX = -this.speed;
 		}
-		
+
 		if (!this.isColliding) {
 			this.context.drawImage(imageRepository.enemy, this.x, this.y);
-		
+
 			// Enemy has a chance to shoot every movement
 			chance = Math.floor(Math.random()*101);
 			if (chance/100 < percentFire) {
 				this.fire();
 			}
-			
+
 			return false;
 		}
 		else {
 			return true;
 		}
 	};
-	
+
 	/*
 	 * Fires a bullet
 	 */
 	this.fire = function() {
 		game.enemyBulletPool.get(this.x+this.width/2, this.y+this.height, -2.5);
 	};
-	
+
 	/*
 	 * Resets the enemy values
 	 */
@@ -664,7 +664,7 @@ Enemy.prototype = new Drawable();
 function Game() {
 	/*
 	 * Gets canvas information and context and sets up all game
-	 * objects. 
+	 * objects.
 	 * Returns true if the canvas is supported and false if it
 	 * is not. This is to stop the animation script from constantly
 	 * running on browsers that do not support the canvas.
@@ -674,45 +674,45 @@ function Game() {
 		this.bgCanvas = document.getElementById('background');
 		this.shipCanvas = document.getElementById('ship');
 		this.mainCanvas = document.getElementById('main');
-		
+
 		// Test to see if canvas is supported. Only need to
 		// check one canvas
 		if (this.bgCanvas.getContext) {
 			this.bgContext = this.bgCanvas.getContext('2d');
 			this.shipContext = this.shipCanvas.getContext('2d');
 			this.mainContext = this.mainCanvas.getContext('2d');
-		
+
 			// Initialize objects to contain their context and canvas
 			// information
 			Background.prototype.context = this.bgContext;
 			Background.prototype.canvasWidth = this.bgCanvas.width;
 			Background.prototype.canvasHeight = this.bgCanvas.height;
-			
+
 			Ship.prototype.context = this.shipContext;
 			Ship.prototype.canvasWidth = this.shipCanvas.width;
 			Ship.prototype.canvasHeight = this.shipCanvas.height;
-			
+
 			Bullet.prototype.context = this.mainContext;
 			Bullet.prototype.canvasWidth = this.mainCanvas.width;
 			Bullet.prototype.canvasHeight = this.mainCanvas.height;
-			
+
 			Enemy.prototype.context = this.mainContext;
 			Enemy.prototype.canvasWidth = this.mainCanvas.width;
 			Enemy.prototype.canvasHeight = this.mainCanvas.height;
-			
+
 			// Initialize the background object
 			this.background = new Background();
 			this.background.init(0,0); // Set draw point to 0,0
-			
+
 			// Initialize the ship object
 			this.ship = new Ship();
 			// Set the ship to start near the bottom middle of the canvas
 			var shipStartX = this.shipCanvas.width/2 - imageRepository.spaceship.width;
 			var shipStartY = this.shipCanvas.height/4*3 + imageRepository.spaceship.height*2;
-			this.ship.init(shipStartX, shipStartY,										 
+			this.ship.init(shipStartX, shipStartY,
 										 imageRepository.spaceship.width,
 			               imageRepository.spaceship.height);
-										 
+
 			// Initialize the enemy pool object
 			this.enemyPool = new Pool(30);
 			this.enemyPool.init("enemy");
@@ -729,19 +729,19 @@ function Game() {
 					y += spacer
 				}
 			}
-			
+
 			this.enemyBulletPool = new Pool(50);
 			this.enemyBulletPool.init("enemyBullet");
-			
+
 			// Start QuadTree
 			this.quadTree = new QuadTree({x:0,y:0,width:this.mainCanvas.width,height:this.mainCanvas.height});
-										 
+
 			return true;
 		} else {
 			return false;
 		}
 	};
-	
+
 	// Start the animation loop
 	this.start = function() {
 		this.ship.draw();
@@ -763,7 +763,7 @@ function animate() {
 	game.quadTree.insert(game.ship.bulletPool.getPool());
 	game.quadTree.insert(game.enemyPool.getPool());
 	game.quadTree.insert(game.enemyBulletPool.getPool());
-	
+
 	detectCollision();
 
 	// Animate game objects
@@ -779,9 +779,9 @@ function detectCollision() {
 	var objects = [];
 	game.quadTree.getAllObjects(objects);
 
-	for (var x = 0, len = objects.length; x < len; x++) {		
+	for (var x = 0, len = objects.length; x < len; x++) {
 		game.quadTree.findObjects(obj = [], objects[x]);
-		
+
 		for (y = 0, length = obj.length; y < length; y++) {
 
 			// DETECT COLLISION ALGORITHM
@@ -789,7 +789,7 @@ function detectCollision() {
 				(objects[x].x < obj[y].x + obj[y].width &&
 			     objects[x].x + objects[x].width > obj[y].x &&
 				 objects[x].y < obj[y].y + obj[y].height &&
-				 objects[x].y + objects[y].height > obj[y].y)) {
+				 objects[x].y + objects[x].height > obj[y].y)) {
 				objects[x].isColliding = true;
 				obj[y].isColliding = true;
 			}
@@ -846,17 +846,17 @@ document.onkeyup = function(e) {
 }
 
 
-/**	
+/**
  * requestAnim shim layer by Paul Irish
- * Finds the first API that works to optimize the animation loop, 
+ * Finds the first API that works to optimize the animation loop,
  * otherwise defaults to setTimeout().
  */
 window.requestAnimFrame = (function(){
-	return  window.requestAnimationFrame       || 
-			window.webkitRequestAnimationFrame || 
-			window.mozRequestAnimationFrame    || 
-			window.oRequestAnimationFrame      || 
-			window.msRequestAnimationFrame     || 
+	return  window.requestAnimationFrame       ||
+			window.webkitRequestAnimationFrame ||
+			window.mozRequestAnimationFrame    ||
+			window.oRequestAnimationFrame      ||
+			window.msRequestAnimationFrame     ||
 			function(/* function */ callback, /* DOMElement */ element){
 				window.setTimeout(callback, 1000 / 60);
 			};
